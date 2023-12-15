@@ -21,11 +21,13 @@ jobs:
     # Setup gcloud CLI
     - uses: google-github-actions/setup-gcloud@v0
       with:
-        service_account_email: ${{ secrets.GCP_SA_EMAIL }}
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        service_account_email: ${{ secrets.GCP_EMAIL }}
+        service_account_key: ${{ secrets.GCP_KEY }}
         project_id: elegant-cipher-399617
 
     - name: Deploy via GCS
       run: |
-        gsutil -m rm -rf gs://group1adminportal/* || echo "$?"
-        gsutil -m cp -r * gs://group1adminportal/
+        gsutil -m cp -r ./Admin/AdminPortal.html gs://group1adminportal/
+        gsutil -m cp -r ./Client/app.js gs://group1clouldchatapp/
+        gsutil -m cp -r ./Client/chat.css gs://group1clouldchatapp/
+        gsutil -m cp -r ./Client/index.html gs://group1clouldchatapp/
