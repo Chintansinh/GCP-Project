@@ -1,8 +1,6 @@
 
-const mysql = require('mysql');  
-const {PubSub} = require('@google-cloud/pubsub');
-const pubsub = new PubSub();
-exports.helloHttp = (req, res) => {
+const mysql = require('mysql'); 
+exports.crudFunction = (req, res) => {
 res.set('Access-Control-Allow-Origin', "*");
 res.set('Access-Control-Allow-Methods', 'GET, POST');
 const Operations = {
@@ -13,7 +11,7 @@ const Operations = {
       Login: 5,
       DeleteUser: 6,
       DeleteTeam: 7,
-      RecordMessage: 8
+      RecordMessage: 8,
     }
 
 const pool = mysql.createPool({
@@ -47,6 +45,9 @@ if (body.operation){
       break;
       case Operations.DeleteTeam:
       DeleteTeam(res, pool, body.id)
+      break;
+      case Operations.RecordMessage:
+      RecordMessage(res, pool, body.userId, body.teamId, body.userName, body.userEmail, body.userRole, body.teamName, body.topic, body.message)
       break;
       default:
       DefaultResponse(res, "body")
@@ -84,23 +85,30 @@ function ViewTeam(res, pool){
 }
 
 function Login(res, pool, email, password){
-  var sql = "SELECT u.UserID, u.Name, u.Role, u.Email, t.Topic as Topic FROM group1db.Users u INNER JOIN group1db.Teams t WHERE u.TeamID = t.TeamID WHERE Email = '"+ email + "' AND Password = '" + password + "' LIMIT 1";
+  var sql = "SELECT u.UserID, u.Name, u.Role, u.Email, t.Topic as Topic, t.TeamID, t.Name as TeamName FROM group1db.Users u INNER JOIN group1db.Teams t WHERE u.TeamID = t.TeamID AND Email = '"+ email + "' AND Password = '" + password + "' LIMIT 1";
   pool.query(sql, function (e, results) {
       res.status(200).send(results);
   });
 }
 
 function DeleteUser(res, pool, id){
-    var sql = "DELETE FROM group1db.Users WHERE ID = " + id +";";
+    var sql = "DELETE FROM group1db.Users WHERE UserID = " + id +";";
     pool.query(sql, function (e, results) {
         res.status(200).send(results);
     });
 }
 
   function DeleteTeam(res, pool, id){
-    var sql = "DELETE FROM group1db.Teams WHERE ID = " + id +";";
+    var sql = "DELETE FROM group1db.Teams WHERE TeamID = " + id +";";
     pool.query(sql, function (e, results) {
         res.status(200).send(results);
+    });
+  }
+
+  function RecordMessage(res, pool, userId, teamId, userName, userEmail, userRole, teamName, topic, message){
+    var sql = "INSERT INTO group1db.MessageInfo (userId, teamId, userName, userEmail, userRole, teamName, topic, message, createdDate) VALUES ("+ userId + "," + teamId + ",'" + userName +"','" + userEmail + "','" + userRole + "','" + teamName +"','" + topic+"','" + message + "'," +"NOW()"+")";
+    pool.query(sql, function (e, results) {
+        res.status(200).send(sql);
     });
   }
 
